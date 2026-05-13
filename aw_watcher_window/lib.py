@@ -1,7 +1,10 @@
 import sys
+import logging
 from typing import Optional
 
 from .exceptions import FatalError
+
+logger = logging.getLogger(__name__)
 
 
 def get_current_window_linux() -> Optional[dict]:
@@ -47,14 +50,20 @@ def get_current_window_windows() -> Optional[dict]:
 
     try:
         app = windows.get_app_name(window_handle)
-    except Exception:
-        # Fall back to WMI for elevated/admin processes where OpenProcess fails
+    except Exception as exc:  # TODO: narrow down the exception
+        # try with wmi method
+        logger.debug("Failed to get app name with win32 APIs; falling back to WMI: %s", exc)
         try:
             app = windows.get_app_name_wmi(window_handle)
-        except Exception:
+        except Exception as wmi_exc:
+            logger.debug("Failed to get app name with WMI fallback: %s", wmi_exc)
             app = None
 
-    title = windows.get_window_title(window_handle)
+    try:
+        title = windows.get_window_title(window_handle)
+    except Exception as exc:
+        logger.debug("Failed to get window title: %s", exc)
+        title = None
 
     if app is None:
         app = "unknown"

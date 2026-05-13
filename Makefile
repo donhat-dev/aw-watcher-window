@@ -1,7 +1,11 @@
 .PHONY: build test package clean
 
+PYTHON ?= python
+POETRY ?= $(PYTHON) -m poetry
+PYINSTALLER ?= $(PYTHON) -m PyInstaller
+
 build:
-	poetry install
+	$(POETRY) install
 	# if macOS, build swift
 	if [ "$(shell uname)" = "Darwin" ]; then \
 		make build-swift; \
@@ -16,10 +20,10 @@ test:
 	aw-watcher-window --help
 
 typecheck:
-	poetry run mypy aw_watcher_window/ --ignore-missing-imports
+	$(POETRY) run mypy aw_watcher_window/ --ignore-missing-imports
 
 package:
-	pyinstaller aw-watcher-window.spec --clean --noconfirm
+	$(PYINSTALLER) aw-watcher-window.spec --clean --noconfirm
 
 clean:
 	rm -rf build dist
